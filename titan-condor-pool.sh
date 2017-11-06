@@ -1,8 +1,7 @@
 #!/bin/bash
-set -x
+set -o xtrace; set -o errexit; set -o nounset
 pool=$(readlink -f $1)
 mode=$2
-driver_script=$3
 
 if [[ $mode != 'head' && $mode != 'worker' ]]; then
 	echo Invalid mode
@@ -17,6 +16,7 @@ export _CONDOR_NETWORK_INTERFACE="$(ip -4 addr show dev ipogif0 | awk -F '[ /]+'
 export _CONDOR_LOCAL_CONFIG_DIR=$pool/config
 
 if [[ $mode == 'head' ]]; then
+	driver_script=$3
 	ln -T -sf $(hostname) $pool/nodes/cm
 	echo $_CONDOR_NETWORK_INTERFACE > $pool/cm_addr
 	mkdir -p $pool/config
@@ -49,7 +49,6 @@ if [[ $mode == 'head' ]]; then
 
 	export | grep ' _CONDOR_' > $pool/head.env
 	condor_master -f &
-	sleep 5 # give condor time to start up
 	$driver_script
 	wait
 elif [[ $mode == 'worker' ]]; then

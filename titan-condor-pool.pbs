@@ -1,28 +1,27 @@
 #!/bin/bash
-pool=$(readlink -f $1)
+set -o xtrace; set -o errexit; set -o nounset
+pool=$1
 driver_script=$(readlink -f $2)
-img=cvmfs-py2-v2-rh6-nometa.img
+libexec=/lustre/atlas1/ast128/scratch/vbrik/condor-pool
+condor_container=$libexec/cvmfs-py2-v2-rh6-nometa.img
 
-if [[ $pool == '' || $driver_script == '' ]]; then
-	echo Not enough arguments
-	exit 1
-fi
-if ((PBS_NODENUM < 2)); then
+if ((PBS_NUM_NODES < 2)); then
 	echo Not enough nodes
 	exit 1
 fi
 
-source $MODULESHOME/init/bash
+set +x
 module load singularity
-wd=/lustre/atlas1/ast128/scratch/vbrik/condor-pool
-cd $wd
+set -x
+
+mkdir -p $pool
+cd $pool
 
 aprun -n 1 -d 16 \
-		singularity exec --pid $wd/$img \
-				$wd/titan-condor-pool.sh $wd/$pool head $driver_script &
+		singularity exec --pid $condor_container \
+				$libexec/titan-condor-pool.sh $(readlink -f $pool) head $driver_script &
 aprun -n $((PBS_NUM_NODES - 1)) -d 16 \
-		singularity exec --pid $wd/$img \
-				$wd/titan-condor-pool.sh $wd/$pool worker &
-
+		singularity exec --pid $condor_container \
+				$libexec/titan-condor-pool.sh $(readlink -f $pool) worker &
 wait
 # vim:ft=sh
