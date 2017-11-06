@@ -1,0 +1,28 @@
+#!/bin/bash
+$pool=$1
+$img=cvmfs-py2-v2-rh6-nometa.img
+
+if [[ $pool == '' || $job == '' ]]; then
+	echo Not enough arguments
+	exit 1
+fi
+if ((PBS_NODENUM < 2)); then
+	echo Not enough nodes
+	exit 1
+fi
+
+source $MODULESHOME/init/bash
+module load singularity
+wd=/lustre/atlas1/ast128/scratch/vbrik/condor-pool
+cd $wd
+
+aprun -n 1 -d 16 \
+		singularity exec --pid $wd/$img \
+				$wd/titan-condor-pool.sh $wd/$pool head &
+
+aprun -n $((PBS_NUM_NODES - 1)) -d 16 \
+		singularity exec --pid $wd/$img \
+				$wd/titan-condor-pool.sh $wd/$pool worker &
+
+wait
+# vim:ft=sh
