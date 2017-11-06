@@ -1,8 +1,9 @@
 #!/bin/bash
-$pool=$1
-$img=cvmfs-py2-v2-rh6-nometa.img
+pool=$(readlink -f $1)
+driver_script=$(readlink -f $2)
+img=cvmfs-py2-v2-rh6-nometa.img
 
-if [[ $pool == '' || $job == '' ]]; then
+if [[ $pool == '' || $driver_script == '' ]]; then
 	echo Not enough arguments
 	exit 1
 fi
@@ -18,8 +19,7 @@ cd $wd
 
 aprun -n 1 -d 16 \
 		singularity exec --pid $wd/$img \
-				$wd/titan-condor-pool.sh $wd/$pool head &
-
+				$wd/titan-condor-pool.sh $wd/$pool head $driver_script &
 aprun -n $((PBS_NUM_NODES - 1)) -d 16 \
 		singularity exec --pid $wd/$img \
 				$wd/titan-condor-pool.sh $wd/$pool worker &

@@ -2,6 +2,7 @@
 set -x
 pool=$(readlink -f $1)
 mode=$2
+driver_script=$3
 
 if [[ $mode != 'head' && $mode != 'worker' ]]; then
 	echo Invalid mode
@@ -16,7 +17,7 @@ export _CONDOR_NETWORK_INTERFACE="$(ip -4 addr show dev ipogif0 | awk -F '[ /]+'
 export _CONDOR_LOCAL_CONFIG_DIR=$pool/config
 
 if [[ $mode == 'head' ]]; then
-	ln -sf $(hostname) $pool/nodes/cm
+	ln -T -sf $(hostname) $pool/nodes/cm
 	echo $_CONDOR_NETWORK_INTERFACE > $pool/cm_addr
 	mkdir -p $pool/config
 	cat <<- EOF > $pool/config/00_pool
@@ -43,15 +44,17 @@ if [[ $mode == 'head' ]]; then
 	export _CONDOR_DAEMON_LIST="MASTER SCHEDD COLLECTOR NEGOTIATOR"
 	export _CONDOR_HISTORY="$_CONDOR_LOCAL_DIR/history"
 	export _CONDOR_EVENT_LOG="$_CONDOR_LOCAL_DIR/events"
-	export _CONDOR_SPOOL="$_CONDOR_LOCAL_DIR/spool"
+	export _CONDOR_SPOOL="$pool/spool"
 	mkdir -p $_CONDOR_SPOOL
 
 	export | grep ' _CONDOR_' > $pool/head.env
+	condor_master -f &
+	sleep 5 # give condor time to start up
+	$driver_script
+	wait
 elif [[ $mode == 'worker' ]]; then
 	export _CONDOR_DAEMON_LIST="MASTER STARTD"
 	export _CONDOR_EXECUTE=/tmp/execute
 	mkdir -p $_CONDOR_EXECUTE
+	condor_master -f
 fi
-
-condor_master -f &
-wait
