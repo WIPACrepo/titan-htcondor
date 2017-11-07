@@ -22,6 +22,7 @@ if [[ $mode == 'head' ]]; then
 	mkdir -p $pool/config
 	cat <<- EOF > $pool/config/00_pool
 		CONDOR_HOST=$_CONDOR_NETWORK_INTERFACE
+		FILESYSTEM_DOMAIN = titan
 		MAX_FILE_DESCRIPTORS = 80000
 		COLLECTOR_MAX_FILE_DESCRIPTORS = 80000
 		SCHEDD_MAX_FILE_DESCRIPTORS = 80000
@@ -47,13 +48,15 @@ if [[ $mode == 'head' ]]; then
 	export _CONDOR_SPOOL="$pool/spool"
 	mkdir -p $_CONDOR_SPOOL
 
-	export | grep ' _CONDOR_' > $pool/head.env
 	condor_master -f &
+	sleep 5 # give condor time to start up
 	$driver_script
-	wait
 elif [[ $mode == 'worker' ]]; then
 	export _CONDOR_DAEMON_LIST="MASTER STARTD"
 	export _CONDOR_EXECUTE=/tmp/execute
 	mkdir -p $_CONDOR_EXECUTE
-	condor_master -f
+	condor_master -f &
 fi
+
+export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
+wait
