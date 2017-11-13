@@ -1,27 +1,49 @@
 #!/bin/bash
 set -o xtrace; set -o errexit; set -o nounset
 pool=$1
-driver_script=$(readlink -f $2)
+#driver_script=$(readlink -f $2)
 libexec=/lustre/atlas1/ast128/scratch/vbrik/condor-pool
 condor_container=$libexec/cvmfs-py2-v2-rh6-nometa.img
 
-if ((PBS_NUM_NODES < 2)); then
-	echo Not enough nodes
-	exit 1
+set +o nounset
+if [ -z "$PBS_NUM_NODES" ]; then
+	PBS_NUM_NODES=0
 fi
+set -o nounset
 
 set +x
 module load singularity
 set -x
 
 mkdir -p $pool
-cd $pool
+cd $pool # o/w aprun may fail
+test -f $pool/pool_is_ready && rm $pool/pool_is_ready
+test -f $pool/pool_kill && rm $pool/pool_kill
 
-aprun -n 1 -d 16 \
+if ((PBS_NUM_NODES == 0)); then
+	singularity exec --pid $condor_container \
+				$libexec/start_cm_node.sh $(readlink -f $pool) STARTD &
+elif ((PBS_NUM_NODES == 1)); then
+	singularity exec --pid $condor_container \
+				$libexec/start_cm_node.sh $(readlink -f $pool) &
+	aprun singularity exec --pid $condor_container \
+				$libexec/start_worker_node.sh $(readlink -f $pool) &
+else
+	aprun -n 1 -d 16 \
 		singularity exec --pid $condor_container \
-				$libexec/titan-condor-pool.sh $(readlink -f $pool) head $driver_script &
-aprun -n $((PBS_NUM_NODES - 1)) -d 16 \
+				$libexec/start_cm_node.sh $(readlink -f $pool) &
+	aprun -n $((PBS_NUM_NODES - 1)) -d 16 \
 		singularity exec --pid $condor_container \
-				$libexec/titan-condor-pool.sh $(readlink -f $pool) worker &
-wait
+				$libexec/start_worker_node.sh $(readlink -f $pool) &
+fi
+
+while ! test -f "$pool/pool_is_ready"; do
+	echo Waiting for $pool/pool_is_ready
+	sleep 5
+done
+
+#ssh -p 2222 $(<$pool/cm_addr) $driver_script
+#sleep 5
+#ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown.sh $(readlink -f $pool) &
+
 # vim:ft=sh

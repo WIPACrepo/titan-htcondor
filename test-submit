@@ -1,5 +1,5 @@
 executable = /bin/sleep
-arguments = 0
+arguments = 1
 log = test-log
 queue 100
 
