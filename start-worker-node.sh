@@ -1,5 +1,5 @@
 #!/bin/bash
-set -o xtrace; set -o errexit; set -o nounset
+set -o errexit; set -o nounset
 pool=$(readlink -f $1)
 
 titan-sshd
@@ -13,6 +13,6 @@ source $(dirname "${BASH_SOURCE[0]}")/condor-common.sh $pool
 export _CONDOR_DAEMON_LIST="MASTER STARTD"
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
 
-set +o xtrace; source $(dirname "${BASH_SOURCE[0]}")/condor-pool-kill.sh $pool; set -o xtrace
+shutdown_on_pool_kill &
 
 condor_master -f 

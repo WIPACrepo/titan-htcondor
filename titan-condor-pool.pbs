@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o xtrace; set -o errexit; set -o nounset
 pool=$1
-#driver_script=$(readlink -f $2)
+driver_script=$(readlink -f $2)
 libexec=/lustre/atlas1/ast128/scratch/vbrik/condor-pool
 condor_container=$libexec/cvmfs-py2-v2-rh6-nometa.img
 
@@ -42,8 +42,11 @@ while ! test -f "$pool/pool_is_ready"; do
 	sleep 5
 done
 
-#ssh -p 2222 $(<$pool/cm_addr) $driver_script
-#sleep 5
-#ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown.sh $(readlink -f $pool) &
+ssh -p 2222 $(<$pool/cm_addr) $driver_script
+ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh $(readlink -f $pool) &
+
+while ! test -f "$pool/pool_kill"; do
+	sleep 60
+done
 
 # vim:ft=sh

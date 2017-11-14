@@ -7,3 +7,45 @@ export _CONDOR_NETWORK_INTERFACE="$(ip -4 addr show dev ipogif0 | awk -F '[ /]+'
 export _CONDOR_LOCAL_CONFIG_DIR=$pool/config
 export _CONDOR_EXECUTE=/tmp/execute
 mkdir -p $_CONDOR_EXECUTE
+
+function create_pool_config() {
+	mkdir -p $pool/config
+	cat <<- EOF > $pool/config/00_pool
+		CONDOR_HOST=$1
+		FILESYSTEM_DOMAIN = titan
+		MAX_FILE_DESCRIPTORS = 80000
+		COLLECTOR_MAX_FILE_DESCRIPTORS = 80000
+		SCHEDD_MAX_FILE_DESCRIPTORS = 80000
+		CLAIM_WORKLIFE = -1
+
+		CONDOR_ADMIN = Undefined
+		ENABLE_KERNEL_TUNING = False
+		ALLOW_DAEMON = *
+		HOSTALLOW_ADMINISTRATOR = *
+		
+		LOG = \$(LOCAL_DIR)
+		RUN = \$(LOCAL_DIR)
+		LOCK = \$(LOCAL_DIR)
+
+		RUNBENCHMARKS = False
+		use feature : GPUs
+		GPU_DISCOVERY_EXTRA = -extra
+		SLOT_TYPE_1 = auto
+		SLOT_TYPE_1_PARTITIONABLE = TRUE
+		NUM_SLOTS_TYPE_1 = 1
+	EOF
+}
+
+# stop condor if $pool/pool_kill exists
+function shutdown_on_pool_kill() {
+	while true; do
+		sleep 10
+		if [ -f "$pool/pool_kill" ]; then
+			condor_off -daemon master
+			sleep 5
+			killall condor_master
+			sleep 5
+			pkill -KILL condor # this will probably kill this and other scripts
+		fi
+	done
+}
