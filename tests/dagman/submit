@@ -1,0 +1,5 @@
+executable = /bin/sleep
+arguments = 10
+queue 1
+
+# vim:ft=condor
