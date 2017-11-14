@@ -6,7 +6,7 @@ set -o nounset
 
 titan-sshd
 
-source $(dirname "${BASH_SOURCE[0]}")/condor_common.sh $pool
+source $(dirname "${BASH_SOURCE[0]}")/condor-common.sh $pool
 ln -T -sf $(hostname) $pool/nodes/cm
 echo $_CONDOR_NETWORK_INTERFACE > $pool/cm_addr
 mkdir -p $pool/config
@@ -42,6 +42,6 @@ mkdir -p $_CONDOR_SPOOL
 
 export _CONDOR_DAEMON_LIST="MASTER SCHEDD COLLECTOR NEGOTIATOR $extra_daemons"
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
-set +o xtrace; source $(dirname "${BASH_SOURCE[0]}")/condor_pool_kill.sh $pool; set -o xtrace
+set +o xtrace; source $(dirname "${BASH_SOURCE[0]}")/condor-pool-kill.sh $pool; set -o xtrace
 
 condor_master -f
