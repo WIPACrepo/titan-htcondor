@@ -1,6 +1,5 @@
 executable = /bin/sleep
-arguments = 1
-log = test-log
-queue 100
+arguments = 10
+queue 1000
 
 # vim:ft=condor
