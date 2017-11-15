@@ -19,6 +19,7 @@ export _CONDOR_HISTORY="$pool/history"
 
 export _CONDOR_DAEMON_LIST="MASTER SCHEDD COLLECTOR NEGOTIATOR $extra_daemons"
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
+dstat -t --all -p --proc-count -l --mem --swap >> $_CONDOR_LOCAL_DIR/dstat &
 shutdown_on_pool_kill $pool &
 
 (sleep 5 && touch $pool/pool_is_ready)&
