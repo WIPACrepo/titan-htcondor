@@ -3,8 +3,8 @@ set -o errexit
 set -o nounset
 pool=$(readlink -f $1)
 driver_script=$(readlink -f $2)
-libexec=/lustre/atlas1/ast128/scratch/vbrik/condor-pool
-condor_container=$libexec/cvmfs-py2-v2-rh6-nometa.img
+libexec=$(readlink -f $3)
+condor_container=$(readlink -f $4)
 
 set +o nounset
 if [ -z "$PBS_NUM_NODES" ]; then
