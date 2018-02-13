@@ -55,7 +55,9 @@ function shutdown_on_pool_kill() {
 			sleep 5
 			killall condor_master
 			sleep 5
-			pkill -KILL condor # this will probably kill this and other scripts
+			kill -INT -1
+			sleep 1
+			kill -KILL -1
 		fi
 	done
 }
