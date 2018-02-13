@@ -42,7 +42,11 @@ while ! test -f "$pool/pool_is_ready"; do
 done
 
 ssh -p 2222 $(<$pool/cm_addr) $driver_script
-ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh $pool &
+if [ -f $pool/pool_no_auto_shutdown ]; then
+	echo POOL AUTOSHUTDOWN DISABLED
+else
+	ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh $pool &
+fi
 
 while ! test -f "$pool/pool_kill"; do
 	sleep 60
