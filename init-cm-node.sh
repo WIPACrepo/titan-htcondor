@@ -12,7 +12,7 @@ ln -T -sf $(hostname) $pool/nodes/cm
 echo $_CONDOR_NETWORK_INTERFACE > $pool/cm_addr
 create_pool_config $pool $_CONDOR_NETWORK_INTERFACE
 
-export _CONDOR_EVENT_LOG="$_CONDOR_LOCAL_DIR/events"
+export _CONDOR_EVENT_LOG="$pool/events"
 export _CONDOR_SPOOL="$pool/spool"
 mkdir -p $_CONDOR_SPOOL
 export _CONDOR_HISTORY="$pool/history"
