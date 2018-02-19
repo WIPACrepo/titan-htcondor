@@ -5,7 +5,7 @@ pool=$1
 out_of_jobs_shutdown_delay=300
 source /tmp/env
 
-while true; do
+while ! test -f "$pool/pool_kill"; do
 	sleep 10
 	idle_jobs=$(condor_status -sched -af TotalIdleJobs)
 	#dyn_slots=$(condor_status -con DynamicSlot | wc -l)
