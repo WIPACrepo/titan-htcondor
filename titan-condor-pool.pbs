@@ -49,7 +49,7 @@ else
 fi
 
 while ! test -f "$pool/pool_kill"; do
-	sleep 60
+	sleep 10
 done
 
 # vim:ft=sh
