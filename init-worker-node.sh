@@ -18,6 +18,7 @@ export _CONDOR_DAEMON_LIST="MASTER STARTD"
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
 dstat -t --all -p --proc-count -l --mem --swap >> $_CONDOR_LOCAL_DIR/dstat &
 nvidia-smi dmon -o DT -s um >> $_CONDOR_LOCAL_DIR/dmon &
+for ((;;)); do dmesg > $_CONDOR_LOCAL_DIR/dmesg; sleep 10 ; done &
 shutdown_on_pool_kill $pool &
 
 condor_master -f 
