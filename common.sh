@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function condor_setup_common() {
-	pool=$1
+	local pool=$1
 	export _CONDOR_LOCAL_DIR=$pool/nodes/$(hostname)
 	mkdir -p $_CONDOR_LOCAL_DIR
 	export _CONDOR_NETWORK_INTERFACE="$(ip -4 addr show dev ipogif0 | awk -F '[ /]+' '/inet/{print $3}')"
@@ -11,8 +11,8 @@ function condor_setup_common() {
 }
 
 function create_pool_config() {
-	pool=$1
-	host=$2
+	local pool=$1
+	local host=$2
 	mkdir -p $pool/config
 	cat <<- EOF > $pool/config/00_pool
 		CONDOR_HOST=$host
@@ -47,7 +47,7 @@ function create_pool_config() {
 
 # stop condor if $pool/pool_kill exists
 function shutdown_on_pool_kill() {
-	pool=$1
+	local pool=$1
 	while true; do
 		sleep 10
 		if [ -f "$pool/pool_kill" ]; then
@@ -63,8 +63,8 @@ function shutdown_on_pool_kill() {
 }
 
 function start_monitoring() {
-	dst=$1
-	pool=$2
+	local dst=$1
+	local pool=$2
 	dstat -t --all -p --proc-count -l --mem --swap --tcp >> $d/dstat &
 	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
 	for ((;;)); do
