@@ -61,3 +61,17 @@ function shutdown_on_pool_kill() {
 		fi
 	done
 }
+
+function start_monitoring() {
+	dst=$1
+	pool=$2
+	dstat -t --all -p --proc-count -l --mem --swap --tcp >> $d/dstat &
+	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
+	for ((;;)); do
+		dmesg | ts > $d/dmesg
+		# ping fails with permission error, so don't use it
+		nc -v -w 1 $(<$pool/cm_addr) 22 <<< "" |& ts >> nc
+		ifconfig |& ts >> $d/ifconfig
+		sleep 10
+	done &
+}

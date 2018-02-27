@@ -22,9 +22,7 @@ export _CONDOR_STARTD_HISTORY=$_CONDOR_LOCAL_DIR/startd_history
 export _CONDOR_DAEMON_LIST="MASTER SCHEDD COLLECTOR NEGOTIATOR $extra_daemons"
 
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
-dstat -t --all -p --proc-count -l --mem --swap >> $_CONDOR_LOCAL_DIR/dstat &
-# if CM is running on a service node, nvidia-smi will fail
-nvidia-smi dmon -o DT -s um >> $_CONDOR_LOCAL_DIR/dmon || true &
+start_monitoring $_CONDOR_LOCAL_DIR $pool
 shutdown_on_pool_kill $pool &
 
 (sleep 5 && touch $pool/pool_is_ready) &
