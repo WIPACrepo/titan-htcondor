@@ -18,6 +18,7 @@ mkdir -p $pool
 cd $pool # o/w aprun may fail
 test -f $pool/pool_is_ready && rm $pool/pool_is_ready
 test -f $pool/pool_kill && rm $pool/pool_kill
+test -f $pool/pool_nodes && rm $pool/pool_nodes
 
 if ((PBS_NUM_NODES == 0)); then
 	singularity exec --pid $condor_container \
