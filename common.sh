@@ -54,9 +54,9 @@ function shutdown_on_pool_kill() {
 		sleep 10
 		if [ -f "$pool/pool_kill" ]; then
 			condor_off -daemon master
-			sleep 5
+			sleep 6
 			killall condor_master
-			sleep 5
+			sleep 3
 			kill -INT -1
 			sleep 1
 			kill -KILL -1
