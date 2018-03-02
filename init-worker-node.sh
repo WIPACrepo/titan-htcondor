@@ -6,10 +6,11 @@ pool=$(readlink -f $1)
 titan-sshd
 
 while ! test -f "$pool/pool_is_ready"; do
-	echo Waiting for $pool/pool_is_ready
 	sleep 5
 done
-echo Starting condor on $(hostname)
+delay=$((RANDOM % 60))
+echo Starting condor on $(hostname) in $delay seconds
+sleep $delay
 
 source $(dirname "${BASH_SOURCE[0]}")/common.sh
 condor_setup_common $pool
