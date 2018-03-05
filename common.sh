@@ -23,7 +23,6 @@ function create_pool_config() {
 		MAX_FILE_DESCRIPTORS = 80000
 		COLLECTOR_MAX_FILE_DESCRIPTORS = 80000
 		SCHEDD_MAX_FILE_DESCRIPTORS = 80000
-		CLAIM_WORKLIFE = -1
 		JobLeaseDuration = 600
 		SUBMIT_EXPRS = \$(SUBMIT_EXPRS) JobLeaseDuration
 
@@ -45,10 +44,12 @@ function create_pool_config() {
 		SLOT_TYPE_1_PARTITIONABLE = TRUE
 		NUM_SLOTS_TYPE_1 = 1
 		
-		WANT_HOLD = (DynamicSlot is True) && (ImageSize/1024 > 27000 is True)
-		PREEMPT = (DynamicSlot is True) && $(WANT_HOLD)
-		WANT_HOLD_REASON = "high memory usage"
-		WANT_HOLD_SUBCODE = 1001
+		# Titan nodes have no swap, and if a node runs out of memory, the
+		# entire aprun "application" may be killed, or condor may crash.
+		# Because of that, and because Condor may not catch rapidly increasing
+		# memory consumption, set the limit to be conservative.
+		MEMORY_TOO_HIGH = (isDefined(MemoryUsage) && MemoryUsage > 20000)
+		use POLICY : WANT_HOLD_IF(MEMORY_TOO_HIGH, 102, "memory too high")
 	EOF
 }
 
