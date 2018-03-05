@@ -36,6 +36,8 @@ function create_pool_config() {
 		RUN = \$(LOCAL_DIR)
 		LOCK = \$(LOCAL_DIR)
 		MAX_DEFAULT_LOG = 0
+		EVENT_LOG_MAX_ROTATIONS = 0
+		MAX_HISTORY_ROTATIONS = 0
 
 		RUNBENCHMARKS = False
 		use feature : GPUs
