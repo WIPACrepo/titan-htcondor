@@ -1,6 +1,7 @@
 #!/bin/bash
 set -o errexit
 set -o nounset
+set -o xtrace
 pool=$(readlink -f $1)
 driver_script=$(readlink -f $2)
 libexec=$(readlink -f $3)
@@ -26,19 +27,23 @@ if ((PBS_NUM_NODES == 0)); then
 elif ((PBS_NUM_NODES == 1)); then
 	singularity exec --pid $condor_container \
 				$libexec/init-cm-node.sh $pool &
-	aprun singularity exec --pid $condor_container \
+	aprun -D 1 singularity exec --pid $condor_container \
 				$libexec/init-worker-node.sh $pool &
 else
-	aprun -n 1 -d 16 \
+	aprun -D 1 -n 1 -d 16 \
 		singularity exec --pid $condor_container \
 				$libexec/init-cm-node.sh $pool STARTD &
-	aprun -n $((PBS_NUM_NODES - 1)) -d 16 \
+	aprun -D 1 -n $((PBS_NUM_NODES - 1)) -d 16 \
 		singularity exec --pid $condor_container \
 				$libexec/init-worker-node.sh $pool &
 fi
 
+date >> $pool/main
+env >> $pool/main
+apstat -ar >> $pool/main
+
 while ! test -f "$pool/pool_is_ready"; do
-	echo Waiting for $pool/pool_is_ready
+	echo Main script waiting for $pool/pool_is_ready
 	sleep 5
 done
 

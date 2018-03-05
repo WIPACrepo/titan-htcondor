@@ -61,7 +61,7 @@ function monitor_connectivity() {
 function monitor_host() {
 	local d=$1
 	local pool=$2
-	dstat -t --all -p --proc-count -l --mem --swap --tcp >> $d/dstat &
+	dstat -t -cngy -p --proc-count -l --mem --tcp >> $d/dstat &
 	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
 	monitor_connectivity $d $pool &
 	for ((;;)); do
