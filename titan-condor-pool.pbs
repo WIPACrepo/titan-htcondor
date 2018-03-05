@@ -13,8 +13,12 @@ if [ -z "$PBS_NUM_NODES" ]; then
 fi
 set -o nounset
 
+echo Main script loading singularity
+set +o xtrace
 module load singularity
+set -o xtrace
 
+echo Main script starting pool initialization
 mkdir -p $pool
 cd $pool # o/w aprun may fail
 test -f $pool/pool_is_ready && rm $pool/pool_is_ready
@@ -72,6 +76,8 @@ done
 ssh -p 2222 $(<$pool/cm_addr) $driver_script
 ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh $pool &
 
+echo Main script finished initialization
+set +o xtrace
 while ! test -f "$pool/pool_kill"; do
 	sleep 20
 done
