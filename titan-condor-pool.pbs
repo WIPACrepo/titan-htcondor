@@ -32,7 +32,7 @@ elif ((PBS_NUM_NODES == 1)); then
 else
 	aprun -D 1 -n 1 -d 16 \
 		singularity exec --pid $condor_container \
-				$libexec/init-cm-node.sh $pool STARTD &
+				$libexec/init-cm-node.sh $pool &
 	aprun -D 1 -n $((PBS_NUM_NODES - 1)) -d 16 \
 		singularity exec --pid $condor_container \
 				$libexec/init-worker-node.sh $pool &
