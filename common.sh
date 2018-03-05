@@ -47,6 +47,22 @@ function create_pool_config() {
 	EOF
 }
 
+function monitor_host() {
+	local d=$1
+	local pool=$2
+	dstat -t --all -p --proc-count -l --mem --swap --tcp >> $d/dstat &
+	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
+	for ((;;)); do
+		dmesg | ts > $d/dmesg
+		ifconfig |& ts >> $d/ifconfig
+		netstat -anpl | ts >> $d/netstat
+		netstat -s | ts >> $d/netstat
+		# ping fails with permission error, so don't use it
+		nc -v -w 1 $(<$pool/cm_addr) 22 <<< "" |& ts >> nc
+		sleep 10
+	done &
+}
+
 # stop condor if $pool/pool_kill exists
 function shutdown_on_pool_kill() {
 	local pool=$1
@@ -62,20 +78,4 @@ function shutdown_on_pool_kill() {
 			kill -KILL -1
 		fi
 	done
-}
-
-function start_monitoring() {
-	local d=$1
-	local pool=$2
-	dstat -t --all -p --proc-count -l --mem --swap --tcp >> $d/dstat &
-	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
-	for ((;;)); do
-		dmesg | ts > $d/dmesg
-		ifconfig |& ts >> $d/ifconfig
-		netstat -anpl | ts >> $d/netstat
-		netstat -s | ts >> $d/netstat
-		# ping fails with permission error, so don't use it
-		nc -v -w 1 $(<$pool/cm_addr) 22 <<< "" |& ts >> nc
-		sleep 10
-	done &
 }
