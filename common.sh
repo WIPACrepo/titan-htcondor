@@ -51,7 +51,7 @@ function create_pool_config() {
 		# Because of that, and because Condor may not catch rapidly increasing
 		# memory consumption, set the limit to be conservative.
 		MEMORY_TOO_HIGH = (isDefined(MemoryUsage) && MemoryUsage > 20000)
-		use POLICY : WANT_HOLD_IF(MEMORY_TOO_HIGH, 102, "memory too high")
+		use POLICY : WANT_HOLD_IF(MEMORY_TOO_HIGH, 102, memory too high)
 	EOF
 }
 
