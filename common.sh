@@ -44,6 +44,11 @@ function create_pool_config() {
 		SLOT_TYPE_1 = auto
 		SLOT_TYPE_1_PARTITIONABLE = TRUE
 		NUM_SLOTS_TYPE_1 = 1
+		
+		WANT_HOLD = (DynamicSlot is True) && (ImageSize/1024 > 27000 is True)
+		PREEMPT = (DynamicSlot is True) && $(WANT_HOLD)
+		WANT_HOLD_REASON = "high memory usage"
+		WANT_HOLD_SUBCODE = 1001
 	EOF
 }
 
