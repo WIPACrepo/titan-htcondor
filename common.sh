@@ -47,18 +47,30 @@ function create_pool_config() {
 	EOF
 }
 
+function monitor_connectivity() {
+	local d=$1
+	local pool=$2
+	for ((;;)); do
+		nmap --host-timeout 1 -Pn -p 22 $(<$pool/pool_nodes) &>> $d/nmap_pool_nodes
+		sleep 5
+		nmap --host-timeout 1 -Pn -p 22 $(awk '/login/{print $1}' /etc/hosts) &>> $d/nmap_login_hosts
+		sleep 5
+	done
+}
+
 function monitor_host() {
 	local d=$1
 	local pool=$2
 	dstat -t --all -p --proc-count -l --mem --swap --tcp >> $d/dstat &
 	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
+	monitor_connectivity $d $pool &
 	for ((;;)); do
 		dmesg | ts > $d/dmesg
 		ifconfig |& ts >> $d/ifconfig
 		netstat -anpl | ts >> $d/netstat
 		netstat -s | ts >> $d/netstat
 		# ping fails with permission error, so don't use it
-		nc -v -w 1 $(<$pool/cm_addr) 22 <<< "" |& ts >> nc
+		nc -v -w 1 $(<$pool/cm_addr) 22 <<< "" |& ts >> $d/nc
 		sleep 10
 	done &
 }
