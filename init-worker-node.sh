@@ -8,7 +8,7 @@ titan-sshd
 while ! test -f "$pool/pool_is_ready"; do
 	sleep 5
 done
-delay=$((RANDOM % 60))
+delay=$((RANDOM % 10))
 echo Starting condor on $(hostname) in $delay seconds
 sleep $delay
 

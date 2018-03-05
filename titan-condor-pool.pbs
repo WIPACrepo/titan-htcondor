@@ -32,21 +32,24 @@ elif ((PBS_NUM_NODES == 1)); then
 else
 	aprun -D 1 -n 1 -d 16 \
 			singularity exec --pid $condor_container \
-					$libexec/init-cm-node.sh $pool &
+					$libexec/init-cm-node.sh $pool STARTD &
 	# Split up workers into multiple aprun "applications", to prevent the entire
-	# pool from being killed if there is a problem with a worker (e.g. running out
-	# of memory). Note that only 50 concurrent apruns are allowed, and one of them
-	# is used for the central manager, so we can create up to 49 aprun "apps".
-	if ((PBS_NUM_NODES <= 49)); then
-		for ((i=1;i<=PBS_NUM_NODES;i++)); do
+	# pool from being killed sometimes if there is a problem with a worker (e.g.
+	# running out of memory). Note that only 50 concurrent apruns are allowed, and
+	# one of them is used for the central manager, so, in theorty, we can create
+	# up to 49 aprun "apps". In practice, we have to create many fewer apps or we
+	# will run into the 200 process limit (at least that's what I think happens).
+	NUM_WORKER_APPS=20
+	if ((PBS_NUM_NODES - 1 <= NUM_WORKER_APPS)); then
+		for ((i = 1; i <= PBS_NUM_NODES - 1; i++)); do
 			aprun -D 1 -n 1 -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
 		done
 	else
-		jobs_per_aprun_quotient=$(((PBS_NUM_NODES - 1)/48))
-		jobs_per_aprun_remainder=$(((PBS_NUM_NODES - 1)%48))
-		for ((i=1;i<=48;i++)); do
+		jobs_per_aprun_quotient=$(((PBS_NUM_NODES - 1)/(NUM_WORKER_APPS - 1)))
+		jobs_per_aprun_remainder=$(((PBS_NUM_NODES - 1)%(NUM_WORKER_APPS - 1)))
+		for ((i = 1; i <= NUM_WORKER_APPS - 1; i++)); do
 			aprun -D 1 -n $jobs_per_aprun_quotient -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
@@ -54,6 +57,7 @@ else
 		aprun -D 1 -n $jobs_per_aprun_remainder -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
+	fi
 fi
 
 date >> $pool/main
