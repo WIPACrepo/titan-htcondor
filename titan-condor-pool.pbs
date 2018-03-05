@@ -31,11 +31,29 @@ elif ((PBS_NUM_NODES == 1)); then
 				$libexec/init-worker-node.sh $pool &
 else
 	aprun -D 1 -n 1 -d 16 \
-		singularity exec --pid $condor_container \
-				$libexec/init-cm-node.sh $pool &
-	aprun -D 1 -n $((PBS_NUM_NODES - 1)) -d 16 \
-		singularity exec --pid $condor_container \
-				$libexec/init-worker-node.sh $pool &
+			singularity exec --pid $condor_container \
+					$libexec/init-cm-node.sh $pool &
+	# Split up workers into multiple aprun "applications", to prevent the entire
+	# pool from being killed if there is a problem with a worker (e.g. running out
+	# of memory). Note that only 50 concurrent apruns are allowed, and one of them
+	# is used for the central manager, so we can create up to 49 aprun "apps".
+	if ((PBS_NUM_NODES <= 49)); then
+		for ((i=1;i<=PBS_NUM_NODES;i++)); do
+			aprun -D 1 -n 1 -d 16 \
+					singularity exec --pid $condor_container \
+							$libexec/init-worker-node.sh $pool &
+		done
+	else
+		jobs_per_aprun_quotient=$(((PBS_NUM_NODES - 1)/48))
+		jobs_per_aprun_remainder=$(((PBS_NUM_NODES - 1)%48))
+		for ((i=1;i<=48;i++)); do
+			aprun -D 1 -n $jobs_per_aprun_quotient -d 16 \
+					singularity exec --pid $condor_container \
+							$libexec/init-worker-node.sh $pool &
+		done
+		aprun -D 1 -n $jobs_per_aprun_remainder -d 16 \
+					singularity exec --pid $condor_container \
+							$libexec/init-worker-node.sh $pool &
 fi
 
 date >> $pool/main
