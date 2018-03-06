@@ -2,11 +2,11 @@
 # create pool_kill file on certain conditions
 
 pool=$1
-out_of_jobs_shutdown_delay=300
+out_of_jobs_shutdown_delay=600
 source /tmp/env
 
 while ! test -f "$pool/pool_kill"; do
-	sleep 10
+	sleep 20
 	idle_jobs=$(condor_status -sched -af TotalIdleJobs)
 	#dyn_slots=$(condor_status -con DynamicSlot | wc -l)
 	#part_slots=$(condor_status -con PartitionableSlot|wc -l)
