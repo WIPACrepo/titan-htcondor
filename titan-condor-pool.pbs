@@ -79,7 +79,7 @@ ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh $pool &
 echo Main script finished initialization
 set +o xtrace
 while ! test -f "$pool/pool_kill"; do
-	sleep 20
+	sleep 30
 done
 
 # vim:ft=sh

@@ -8,8 +8,8 @@ source /tmp/env
 while ! test -f "$pool/pool_kill"; do
 	sleep 20
 	idle_jobs=$(condor_status -sched -af TotalIdleJobs)
-	#dyn_slots=$(condor_status -con DynamicSlot | wc -l)
-	#part_slots=$(condor_status -con PartitionableSlot|wc -l)
+	#dyn_slots=$(condor_status -con DynamicSlot -af Machine | wc -l)
+	#part_slots=$(condor_status -con PartitionableSlot -af Machine |wc -l)
 	if ((idle_jobs == 0)); then
 		touch $pool/pool_no_idle_jobs
 		running_jobs=$(condor_status -sched -af TotalRunningJobs)
