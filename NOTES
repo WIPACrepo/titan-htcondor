@@ -1,0 +1,6 @@
+* memory hold doesn't seem to work
+* auto-shutdown before jobs runs out of time doesn't seem to work
+* titan-condor-pool.pbs uses hard-coded paths to, e.g. pool directory
+	which is bad if we want to run multiple pools in parallel
+* no way to resume pools without editing driver.sh to not submit jobs
+* copy job submission file to pool dir? (might be wrong level of abstraction)
