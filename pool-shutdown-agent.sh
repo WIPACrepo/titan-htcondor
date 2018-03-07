@@ -16,6 +16,11 @@ while ! test -f "$pool/pool_kill"; do
 		if ((running_jobs > 0)); then
 			sleep $out_of_jobs_shutdown_delay
 		fi
+		{
+			echo ----
+			condor_status
+			condor_q -currentrun -nob -wide
+		} &>> $pool/pool_last_state
 		touch $pool/pool_kill
 		exit
 	fi
