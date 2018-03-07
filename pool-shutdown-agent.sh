@@ -5,6 +5,8 @@ pool=$1
 out_of_jobs_shutdown_delay=60
 source /tmp/env
 
+(sleep $((PBS_WALLTIME-60)) && touch $pool/pool_kill) &
+
 while ! test -f "$pool/pool_kill"; do
 	sleep 20
 	idle_jobs=$(condor_status -sched -af TotalIdleJobs)
@@ -16,12 +18,14 @@ while ! test -f "$pool/pool_kill"; do
 		if ((running_jobs > 0)); then
 			sleep $out_of_jobs_shutdown_delay
 		fi
-		{
-			echo ----
-			condor_status
-			condor_q -currentrun -nob -wide
-		} &>> $pool/pool_last_state
 		touch $pool/pool_kill
-		exit
+		break
 	fi
 done
+
+{
+	echo ----
+	condor_status
+	condor_q -currentrun -nob -wide
+} &>> $pool/pool_last_state
+
