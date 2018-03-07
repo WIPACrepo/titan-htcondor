@@ -2,7 +2,7 @@
 # create pool_kill file on certain conditions
 
 pool=$1
-out_of_jobs_shutdown_delay=600
+out_of_jobs_shutdown_delay=60
 source /tmp/env
 
 while ! test -f "$pool/pool_kill"; do
