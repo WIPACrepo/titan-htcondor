@@ -19,6 +19,6 @@ export _CONDOR_DAEMON_LIST="MASTER STARTD"
 
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
 monitor_host $_CONDOR_LOCAL_DIR $pool
-shutdown_on_pool_kill $pool &
+shutdown_on_pool_kill $pool 0 &
 
 condor_master -f 
