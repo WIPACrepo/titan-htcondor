@@ -24,8 +24,9 @@ cd $pool # o/w aprun may fail
 test -f $pool/pool_is_ready && rm $pool/pool_is_ready
 test -f $pool/pool_kill && rm $pool/pool_kill
 test -f $pool/pool_nodes && rm $pool/pool_nodes
-test -f $pool/pool_out_of_time && rm $pool/pool_out_of_time
 test -f $pool/pool_no_idle_jobs && rm $pool/pool_no_idle_jobs
+
+sleep $((PBS_WALLTIME-60)) && echo "out of time" >> $pool/pool_kill &
 
 if ((PBS_NUM_NODES == 0)); then
 	singularity exec --pid $condor_container \
