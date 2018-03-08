@@ -1,6 +1,16 @@
+* need to improve shutdown: workers first, then cm, then pbs
 * memory hold doesn't seem to work
 * auto-shutdown before jobs runs out of time doesn't seem to work
 * titan-condor-pool.pbs uses hard-coded paths to, e.g. pool directory
 	which is bad if we want to run multiple pools in parallel
 * no way to resume pools without editing driver.sh to not submit jobs
 * copy job submission file to pool dir? (might be wrong level of abstraction)
+* I suspect that some jobs ran multiple times because schedd wasn't shutdown
+	cleanly when job killed on out-of-time
+* events log still rotating
+* enable cgroups (if titan can do it) in condor for better catching of
+    jobs that go over memory?
+* history log still rotating
+* keeps trying to send email to condor devs Can't send UPDATE_COLLECTOR_AD to collector
+* when a pool is resumed with the same worker as previous time, condor may think
+    that worker is still running previous job?
