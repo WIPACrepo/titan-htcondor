@@ -21,6 +21,7 @@ export _CONDOR_STARTD_HISTORY=$_CONDOR_LOCAL_DIR/startd_history
 
 export _CONDOR_DAEMON_LIST="MASTER SCHEDD COLLECTOR NEGOTIATOR $extra_daemons"
 
+export TITAN_POOL_DIR=$pool
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
 monitor_host $_CONDOR_LOCAL_DIR $pool
 shutdown_on_pool_kill $pool 20 &
