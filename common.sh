@@ -48,11 +48,22 @@ function create_pool_config() {
 		NUM_SLOTS_TYPE_1 = 1
 		
 		# Titan nodes have no swap, and if a node runs out of memory, the
-		# entire aprun "application" may be killed, or condor may crash.
-		# Because of that, and because Condor may not catch rapidly increasing
-		# memory consumption, set the limit to be conservative.
-		MEMORY_TOO_HIGH = (isDefined(MemoryUsage) && MemoryUsage > 20000)
-		use POLICY : WANT_HOLD_IF(MEMORY_TOO_HIGH, 102, memory too high)
+		# entire aprun "application" may be killed (including processes on
+		# other machines), or condor may crash. Because of that, and because
+		# Condor may not catch rapidly increasing memory consumption, set the
+		# limit to be conservative.
+		job_age = (time() - JobCurrentStartDate)
+		time_hold = ((\$(job_age) > 1.5 * \$(hour)) is True)
+		mem_used = ImageSize/1024
+		mem_hold = ((\$(mem_used) > 20000) is True)
+		WANT_HOLD = (\$(mem_hold) || \$(time_hold))
+		PREEMPT = \$(WANT_HOLD)
+		WANT_HOLD_REASON = strcat(\
+			ifthenelse(\$(time_hold) is True, \
+				strcat("job_age ", interval(\$(job_age))), ""), \
+			ifthenelse(\$(mem_hold) is True, \
+				strcat("mem_used is ", \$(mem_used)), "") \
+		)
 	EOF
 }
 

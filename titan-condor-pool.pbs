@@ -32,7 +32,7 @@ mkdir -p $archive
 cp $pool/* $archive || true
 test -d $pool/nodes && mv $pool/nodes $archive
 
-sleep $((PBS_WALLTIME-60)) && echo "out of time" >> $pool/pool_kill &
+sleep $((PBS_WALLTIME - 120)) && touch $pool/pool_kill $pool/pool_out_of_time &
 
 if ((PBS_NUM_NODES == 0)); then
 	singularity exec --pid $condor_container \
