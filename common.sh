@@ -17,13 +17,15 @@ function create_pool_config() {
 	local host=$2
 	mkdir -p $pool/config
 	cat <<- EOF > $pool/config/00_pool
-		CONDOR_HOST=$host
+		CONDOR_HOST = $host
 		CONDOR_FSYNC = False
 		FILESYSTEM_DOMAIN = titan
 		MAX_FILE_DESCRIPTORS = 80000
 		COLLECTOR_MAX_FILE_DESCRIPTORS = 80000
 		SCHEDD_MAX_FILE_DESCRIPTORS = 80000
 		CLAIM_WORKLIFE = -1
+		PROCD_ADDRESS = /tmp/procd_pipe
+		LOCK = /tmp
 
 		CONDOR_ADMIN =
 		SCHEDD_RESTART_REPORT =
@@ -35,8 +37,8 @@ function create_pool_config() {
 		RUN = \$(LOCAL_DIR)
 		LOCK = \$(LOCAL_DIR)
 		MAX_DEFAULT_LOG = 0
-		MAX_HISTORY_LOG = 1000000000
-		MAX_EVENT_LOG = 1000000000
+		MAX_HISTORY_LOG = 10000000000
+		MAX_EVENT_LOG = 10000000000
 
 		RUNBENCHMARKS = False
 		use feature : GPUs
