@@ -20,7 +20,6 @@ while ! test -f "$pool/pool_kill"; do
 		sleep 5
 		condor_off -all
 		sleep 3
-		condor_off -all -daemon master
 		touch $pool/pool_kill
 		break
 	fi

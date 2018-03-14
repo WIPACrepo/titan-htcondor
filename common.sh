@@ -102,6 +102,6 @@ function shutdown_on_pool_kill() {
 		sleep 10
 	done
 	condor_off -daemon master
-	sleep 5
+	pgrep condor && sleep 5
 	kill -KILL -1
 }
