@@ -26,6 +26,7 @@ function create_pool_config() {
 		CLAIM_WORKLIFE = -1
 		PROCD_ADDRESS = /tmp/procd_pipe
 		LOCK = /tmp
+		MAX_JOBS_PER_SUBMISSION = 100000
 
 		CONDOR_ADMIN =
 		SCHEDD_RESTART_REPORT =
@@ -37,8 +38,8 @@ function create_pool_config() {
 		RUN = \$(LOCAL_DIR)
 		LOCK = \$(LOCAL_DIR)
 		MAX_DEFAULT_LOG = 0
-		MAX_HISTORY_LOG = 10000000000
-		MAX_EVENT_LOG = 10000000000
+		EVENT_LOG_MAX_SIZE = 0
+		ENABLE_HISTORY_ROTATION = False
 
 		RUNBENCHMARKS = False
 		use feature : GPUs
@@ -54,15 +55,13 @@ function create_pool_config() {
 		# limit to be conservative.
 		job_age = (time() - JobCurrentStartDate)
 		time_hold = ((\$(job_age) > 1.5 * \$(hour)) is True)
-		mem_used = ImageSize/1024
+		mem_used = ImageSize/1024/1024
 		mem_hold = ((\$(mem_used) > 20000) is True)
 		WANT_HOLD = (\$(mem_hold) || \$(time_hold))
 		PREEMPT = \$(WANT_HOLD)
 		WANT_HOLD_REASON = strcat(\
-			ifthenelse(\$(time_hold) is True, \
-				strcat("job_age ", interval(\$(job_age))), ""), \
-			ifthenelse(\$(mem_hold) is True, \
-				strcat("mem_used is ", \$(mem_used)), "") \
+			ifthenelse(\$(time_hold) is True, strcat("t ", interval(\$(job_age))), ""), \
+			ifthenelse(\$(mem_hold) is True, strcat("m ", \$(mem_used)), "") \
 		)
 	EOF
 }
