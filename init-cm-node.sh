@@ -24,7 +24,7 @@ export _CONDOR_DAEMON_LIST="MASTER SCHEDD COLLECTOR NEGOTIATOR $extra_daemons"
 export TITAN_POOL_DIR=$pool
 export | grep -v 'SSH\|PWD\|SHLVL' > /tmp/env
 monitor_host $_CONDOR_LOCAL_DIR $pool
-shutdown_on_pool_kill $pool 20 &
+shutdown_on_pool_kill $pool &
 
 (sleep 5 && touch $pool/pool_is_ready) &
 condor_master -f

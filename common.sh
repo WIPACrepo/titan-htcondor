@@ -98,14 +98,10 @@ function monitor_networking() {
 # stop condor if $pool/pool_kill exists
 function shutdown_on_pool_kill() {
 	local pool=$1
-	local delay=$2
 	while ! test -f "$pool/pool_kill"; do
 		sleep 10
 	done
-	sleep $delay
 	condor_off -daemon master
-	sleep 6
-	killall condor_master
-	sleep 1
+	sleep 5
 	kill -KILL -1
 }

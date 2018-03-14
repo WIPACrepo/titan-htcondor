@@ -16,6 +16,11 @@ while ! test -f "$pool/pool_kill"; do
 		if ((running_jobs > 0)); then
 			sleep $out_of_jobs_shutdown_delay
 		fi
+		condor_off -all -daemon startd
+		sleep 5
+		condor_off -all
+		sleep 3
+		condor_off -all -daemon master
 		touch $pool/pool_kill
 		break
 	fi
