@@ -21,10 +21,16 @@ set -o xtrace
 echo Main script starting pool initialization
 mkdir -p $pool
 cd $pool # o/w aprun may fail
+
 test -f $pool/pool_is_ready && rm $pool/pool_is_ready
 test -f $pool/pool_kill && rm $pool/pool_kill
 test -f $pool/pool_nodes && rm $pool/pool_nodes
 test -f $pool/pool_no_idle_jobs && rm $pool/pool_no_idle_jobs
+
+archive=$pool/archive/$(date -u +%F_%T)
+mkdir -p $archive
+cp $pool/* $archive || true
+test -d $pool/nodes && mv $pool/nodes $archive
 
 sleep $((PBS_WALLTIME-60)) && echo "out of time" >> $pool/pool_kill &
 
@@ -68,6 +74,7 @@ else
 fi
 
 date -u >> $pool/main
+date -u +%s >> $pool/main
 env >> $pool/main
 apstat -ar >> $pool/main
 
