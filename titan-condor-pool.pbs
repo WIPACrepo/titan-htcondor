@@ -32,8 +32,6 @@ mkdir -p $archive
 cp $pool/* $archive || true
 test -d $pool/nodes && mv $pool/nodes $archive
 
-sleep $((PBS_WALLTIME - 120)) && touch $pool/pool_kill $pool/pool_out_of_time &
-
 if ((PBS_NUM_NODES == 0)); then
 	singularity exec --pid $condor_container \
 				$libexec/init-cm-node.sh $pool STARTD &
@@ -84,7 +82,8 @@ while ! test -f "$pool/pool_is_ready"; do
 done
 
 ssh -p 2222 $(<$pool/cm_addr) $driver_script
-ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh $pool &
+ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh \
+								$pool $((PBS_WALLTIME - 120)) &
 
 echo Main script finished initialization
 set +o xtrace
