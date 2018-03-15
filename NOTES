@@ -1,4 +1,0 @@
-* need to improve shutdown: workers first, then cm, then pbs
-    I suspect that some jobs ran multiple times because schedd wasn't shutdown
-	cleanly when job killed on out-of-time
-* keeps trying to send email to condor devs Can't send UPDATE_COLLECTOR_AD to collector

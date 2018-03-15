@@ -53,13 +53,12 @@ function create_pool_config() {
 		# other machines), or condor may crash. Because of that, and because
 		# Condor may not catch rapidly increasing memory consumption, set the
 		# limit to be conservative.
-		job_age = (time() - JobCurrentStartDate)
+		job_age = ifthenelse(JobCurrentStartDate is Undefined, 1, time() - JobCurrentStartDate)
 		time_hold = ((\$(job_age) > 1.5 * \$(hour)) is True)
-		mem_used = ImageSize/1024/1024
+		mem_used = ifthenelse(MemoryUsage is Undefined, 0, MemoryUsage)
 		mem_hold = ((\$(mem_used) > 20000) is True)
-		WANT_HOLD = (\$(mem_hold) || \$(time_hold))
-		PREEMPT = \$(WANT_HOLD)
-		WANT_HOLD_REASON = strcat(\
+		SYSTEM_PERIODIC_HOLD = (JobStatus == 2 && (\$(mem_hold) || \$(time_hold)))
+		SYSTEM_PERIODIC_HOLD_REASON = strcat(\
 			ifthenelse(\$(time_hold) is True, strcat("t ", interval(\$(job_age))), ""), \
 			ifthenelse(\$(mem_hold) is True, strcat("m ", \$(mem_used)), "") \
 		)
