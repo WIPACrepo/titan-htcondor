@@ -71,10 +71,10 @@ function monitor_host() {
 	local pool=$2
 	dstat -t -cngy -p --proc-count -l --mem --tcp >> $d/dstat &
 	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
-	for ((;;)); do
-		dmesg | ts > $d/dmesg
-		sleep 60
-	done &
+#	for ((;;)); do
+#		dmesg | ts > $d/dmesg
+#		sleep 60
+#	done &
 }
 
 function monitor_networking() {

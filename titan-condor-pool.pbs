@@ -6,9 +6,11 @@ pool=$(readlink -f $1)
 driver_script=$(readlink -f $2)
 libexec=$(readlink -f $3)
 condor_container=$(readlink -f $4)
+echo Arguments: $pool $driver_script $libexec $condor_container
 
 set +o nounset
 if [ -z "$PBS_NUM_NODES" ]; then
+	echo Setting PBS_NUM_NODES to 0
 	PBS_NUM_NODES=0
 fi
 set -o nounset
@@ -33,15 +35,18 @@ cp $pool/* $archive || true
 test -d $pool/nodes && mv $pool/nodes $archive
 
 if ((PBS_NUM_NODES == 0)); then
+	echo Starting pool in service node mode
 	singularity exec --pid $condor_container \
 				$libexec/init-cm-node.sh $pool STARTD &
 elif ((PBS_NUM_NODES == 1)); then
+	echo Starting pool in 1 worker node mode
 	singularity exec --pid $condor_container \
 				$libexec/init-cm-node.sh $pool &
-	aprun -D 1 singularity exec --pid $condor_container \
+	aprun singularity exec --pid $condor_container \
 				$libexec/init-worker-node.sh $pool &
 else
-	aprun -D 1 -n 1 -d 16 \
+	echo Starting pool in multi-worker node mode
+	aprun -n 1 -d 16 \
 			singularity exec --pid $condor_container \
 					$libexec/init-cm-node.sh $pool STARTD &
 	# Split up workers into multiple aprun "applications", to prevent the entire
@@ -52,20 +57,26 @@ else
 	# will run into the 200 process limit (at least that's what I think happens).
 	NUM_WORKER_APPS=20
 	if ((PBS_NUM_NODES - 1 <= NUM_WORKER_APPS)); then
+		echo Starting $((PBS_NUM_NODES - 1)) workers
 		for ((i = 1; i <= PBS_NUM_NODES - 1; i++)); do
-			aprun -D 1 -n 1 -d 16 \
+			set +o xtrace
+			aprun -n 1 -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
+			set -o xtrace
 		done
 	else
 		jobs_per_aprun_quotient=$(((PBS_NUM_NODES - 1)/(NUM_WORKER_APPS - 1)))
 		jobs_per_aprun_remainder=$(((PBS_NUM_NODES - 1)%(NUM_WORKER_APPS - 1)))
+		echo Starting $((NUM_WORKER_APPS - 1))x$jobs_per_aprun_quotient workers
 		for ((i = 1; i <= NUM_WORKER_APPS - 1; i++)); do
-			aprun -D 1 -n $jobs_per_aprun_quotient -d 16 \
+			set +o xtrace
+			aprun -n $jobs_per_aprun_quotient -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
+			set -o xtrace
 		done
-		aprun -D 1 -n $jobs_per_aprun_remainder -d 16 \
+		aprun -n $jobs_per_aprun_remainder -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
 	fi
@@ -90,5 +101,6 @@ set +o xtrace
 while ! test -f "$pool/pool_kill"; do
 	sleep 20
 done
+echo Main script exiting
 
 # vim:ft=sh
