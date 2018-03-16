@@ -3,7 +3,7 @@
 
 pool=$1
 pool_ttl=$2
-out_of_jobs_shutdown_delay=60
+out_of_jobs_shutdown_delay=360
 source /tmp/env
 
 function shutdown_pool() {
@@ -22,11 +22,23 @@ function shutdown_pool() {
 
 sleep $pool_ttl && touch $pool/pool_out_of_time && shutdown_pool $pool &
 
+#while ! test -f "$pool/pool_kill"; do
+#	interval=60
+#	num_dyn_slots=$(condor_status -con DynamicSlot -af Machine | wc -l)
+#	num_part_slots=$(condor_status -con PartitionableSlot -af Machine | wc -l)
+#	idle_slots=$((num_dyn_slots - num_part_slots))
+#	ctimes=$(mktemp)
+#	now=$(date +%s)
+#	condor_history -con "CompletionDate>=$((now - interval))" \
+#				-con "CompletionDate<$now" -af CommittedTime > $ctimes
+#	num_jobs=$(wc -l < $ctimes)
+#	goodput=$(paste -sd+ $ctimes)
+#	cost=$((num_dyn_slots * interval))
+#done &
+
 while ! test -f "$pool/pool_kill"; do
 	sleep 20
 	idle_jobs=$(condor_status -sched -af TotalIdleJobs)
-	#dyn_slots=$(condor_status -con DynamicSlot -af Machine | wc -l)
-	#part_slots=$(condor_status -con PartitionableSlot -af Machine |wc -l)
 	if ((idle_jobs == 0)); then
 		touch $pool/pool_no_idle_jobs
 		running_jobs=$(condor_status -sched -af TotalRunningJobs)
