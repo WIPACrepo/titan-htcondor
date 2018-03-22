@@ -49,7 +49,7 @@ else
 	echo Starting pool in multi-worker node mode
 	aprun -n 1 -d 16 \
 			singularity exec --pid $condor_container \
-					$libexec/init-cm-node.sh $pool STARTD &
+					$libexec/init-cm-node.sh $pool &
 	sleep 5
 	# Split up workers into multiple aprun "applications", to prevent the entire
 	# pool from being killed sometimes if there is a problem with a worker (e.g.

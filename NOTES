@@ -1,0 +1,16 @@
+* It would be good to have main script to check if everything is working
+    and to self-destruct otherwise. Right now, job will continue to run
+    if these occur (they haven't so far):
+        - pool-shutdown-agent.sh dies
+        - CM container dies
+        - many workers die
+        - jobs not scheduled
+        - jobs failing en-masse
+* CM is not running a worker, which wastes a GPU, because I am worried
+    the job may cause CM failure, e.g. if the job runs out of memory,
+    killing CM's aprun. Likelihood of this happening is very low (never
+    happened), but the cost could be very high, especially since currently
+    I don't check CM's health in the main script.
+* aprun does not need to transfer executable (-b)
+* aprun should probably "attempt to reconnect around failed nodes" (-C)
+* if an aprun fails, it should probably restart (-R) (can't use -C then).
