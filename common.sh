@@ -2,13 +2,14 @@
 
 function condor_setup_common() {
 	local pool=$1
+	mkdir -p /tmp/$USER/ # used in condor config
 	export _CONDOR_LOCAL_DIR=$pool/nodes/$(hostname)
 	mkdir -p $_CONDOR_LOCAL_DIR
 	local ipaddr="$(ip -4 addr show dev ipogif0 | awk -F '[ /]+' '/inet/{print $3}')"
 	echo $ipaddr >> $pool/pool_nodes
 	export _CONDOR_NETWORK_INTERFACE=$ipaddr
 	export _CONDOR_LOCAL_CONFIG_DIR=$pool/config
-	export _CONDOR_EXECUTE=/tmp/execute
+	export _CONDOR_EXECUTE=/tmp/$USER/execute
 	mkdir -p $_CONDOR_EXECUTE
 }
 
@@ -24,8 +25,6 @@ function create_pool_config() {
 		COLLECTOR_MAX_FILE_DESCRIPTORS = 80000
 		SCHEDD_MAX_FILE_DESCRIPTORS = 80000
 		CLAIM_WORKLIFE = -1
-		PROCD_ADDRESS = /tmp/procd_pipe
-		LOCK = /tmp
 		MAX_JOBS_PER_SUBMISSION = 100000
 
 		CONDOR_ADMIN =
@@ -34,12 +33,14 @@ function create_pool_config() {
 		ALLOW_DAEMON = *
 		HOSTALLOW_ADMINISTRATOR = *
 		
-		LOG = \$(LOCAL_DIR)
-		RUN = \$(LOCAL_DIR)
-		LOCK = \$(LOCAL_DIR)
+		RUN = /tmp/$USER
+		LOCK = /tmp/$USER
 		MAX_DEFAULT_LOG = 0
-		EVENT_LOG_MAX_SIZE = 0
-		ENABLE_HISTORY_ROTATION = False
+		LOG = \$(LOCAL_DIR)
+		PROCD_LOG = /tmp/$USER/ProcLog
+		STARTER_STATS_LOG = /tmp/$USER/XferStatsLog
+		SHARED_PORT_LOG = /tmp/$USER/SharedPortLog
+		NEGOTIATOR_MATCH_LOG = /tmp/$USER/MatchLog
 
 		RUNBENCHMARKS = False
 		use feature : GPUs
@@ -68,8 +69,8 @@ function create_pool_config() {
 function monitor_host() {
 	local d=$1
 	local pool=$2
-	dstat -t -cngy -p --proc-count -l --mem --tcp >> $d/dstat &
-	nvidia-smi dmon -o DT -s um >> $d/dmon || true &
+	dstat -t -cngy -p --proc-count -l --mem --tcp 5 >> $d/dstat &
+	nvidia-smi dmon -o DT -s um -d 5 >> $d/dmon || true &
 #	for ((;;)); do
 #		dmesg | ts > $d/dmesg
 #		sleep 60

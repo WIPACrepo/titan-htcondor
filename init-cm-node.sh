@@ -13,12 +13,12 @@ echo $_CONDOR_NETWORK_INTERFACE > $pool/cm_addr
 create_pool_config $pool $_CONDOR_NETWORK_INTERFACE
 
 export _CONDOR_EVENT_LOG="$pool/events"
+export _CONDOR_EVENT_LOG_ROTATION_LOCK=/tmp/$USER/EventLogLock
+export _CONDOR_EVENT_LOG_MAX_SIZE=0
 export _CONDOR_SPOOL="$pool/spool"
 mkdir -p $_CONDOR_SPOOL
 export _CONDOR_HISTORY="$pool/history"
-# in case STARTD is in $extra_daemons
-export _CONDOR_STARTD_HISTORY=$_CONDOR_LOCAL_DIR/startd_history
-
+export _CONDOR_ENABLE_HISTORY_ROTATION=False
 export _CONDOR_DAEMON_LIST="MASTER SCHEDD COLLECTOR NEGOTIATOR $extra_daemons"
 
 export TITAN_POOL_DIR=$pool

@@ -7,6 +7,7 @@ driver_script=$(readlink -f $2)
 libexec=$(readlink -f $3)
 condor_container=$(readlink -f $4)
 echo Arguments: $pool $driver_script $libexec $condor_container
+job_ts=$(date -u +%s.%F_%T)
 
 set +o nounset
 if [ -z "$PBS_NUM_NODES" ]; then
@@ -29,7 +30,7 @@ test -f $pool/pool_nodes && rm $pool/pool_nodes
 test -f $pool/pool_no_idle_jobs && rm $pool/pool_no_idle_jobs
 test -f $pool/pool_out_of_time && rm $pool/pool_out_of_time
 
-archive=$pool/archive/$(date -u +%F_%T)
+archive=$pool/archive/$job_ts
 mkdir -p $archive
 cp $pool/* $archive || true
 test -d $pool/nodes && mv $pool/nodes $archive
@@ -49,6 +50,7 @@ else
 	aprun -n 1 -d 16 \
 			singularity exec --pid $condor_container \
 					$libexec/init-cm-node.sh $pool STARTD &
+	sleep 5
 	# Split up workers into multiple aprun "applications", to prevent the entire
 	# pool from being killed sometimes if there is a problem with a worker (e.g.
 	# running out of memory). Note that only 50 concurrent apruns are allowed, and
@@ -58,23 +60,20 @@ else
 	NUM_WORKER_APPS=20
 	if ((PBS_NUM_NODES - 1 <= NUM_WORKER_APPS)); then
 		echo Starting $((PBS_NUM_NODES - 1)) workers
-		for ((i = 1; i <= PBS_NUM_NODES - 1; i++)); do
-			set +o xtrace
+		for i in $(seq $((PBS_NUM_NODES - 1))); do
 			aprun -n 1 -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
-			set -o xtrace
 		done
 	else
 		jobs_per_aprun_quotient=$(((PBS_NUM_NODES - 1)/(NUM_WORKER_APPS - 1)))
 		jobs_per_aprun_remainder=$(((PBS_NUM_NODES - 1)%(NUM_WORKER_APPS - 1)))
-		echo Starting $((NUM_WORKER_APPS - 1))x$jobs_per_aprun_quotient workers
-		for ((i = 1; i <= NUM_WORKER_APPS - 1; i++)); do
-			set +o xtrace
+		echo Starting $((NUM_WORKER_APPS - 1))x$jobs_per_aprun_quotient+jobs_per_aprun_remainder workers
+		for i in $(seq $((NUM_WORKER_APPS - 1))); do
 			aprun -n $jobs_per_aprun_quotient -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
-			set -o xtrace
+			sleep 5
 		done
 		aprun -n $jobs_per_aprun_remainder -d 16 \
 					singularity exec --pid $condor_container \
@@ -82,14 +81,17 @@ else
 	fi
 fi
 
-date -u >> $pool/main
-date -u +%s >> $pool/main
-env >> $pool/main
-apstat -ar >> $pool/main
+main_log=$pool/main.$job_ts
+date -u > $main_log
+date -u +%s >> $main_log
+env >> $main_log
+ps aux | grep $USER >> $main_log
+sleep 5 # give apruns time to launch or they won't show up in apstat
+apstat -ar >> $main_log
 
 while ! test -f "$pool/pool_is_ready"; do
 	echo Main script waiting for $pool/pool_is_ready
-	sleep 5
+	sleep 10
 done
 
 ssh -p 2222 $(<$pool/cm_addr) $driver_script

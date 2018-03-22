@@ -4,10 +4,13 @@
 pool=$1
 pool_ttl=$2
 out_of_jobs_shutdown_delay=360
+
+echo "$BASH_SOURCE: starting"
 source /tmp/env
 
 function shutdown_pool() {
 	local pool=$1
+	echo "$BASH_SOURCE: shutting down pool"
 	{
 		echo ----
 		condor_status
@@ -50,3 +53,4 @@ while ! test -f "$pool/pool_kill"; do
 	fi
 done
 
+echo "$BASH_SOURCE: exiting"
