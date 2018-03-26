@@ -14,3 +14,5 @@
 * aprun does not need to transfer executable (-b)
 * aprun should probably "attempt to reconnect around failed nodes" (-C)
 * if an aprun fails, it should probably restart (-R) (can't use -C then).
+* this may not be the best way to solve this, but saving environment in
+    history files makes them huge

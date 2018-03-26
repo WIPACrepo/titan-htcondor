@@ -96,7 +96,7 @@ done
 
 ssh -p 2222 $(<$pool/cm_addr) $driver_script
 ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh \
-								$pool $((PBS_WALLTIME - 120)) &
+								$pool $((PBS_WALLTIME - 160)) &
 
 echo Main script finished initialization
 set +o xtrace
