@@ -58,7 +58,7 @@ function create_pool_config() {
 		job_age = ifthenelse(JobCurrentStartDate is Undefined, 1, time() - JobCurrentStartDate)
 		time_hold = ((\$(job_age) > 1.5 * \$(hour)) is True)
 		mem_used = ifthenelse(MemoryUsage is Undefined, 0, MemoryUsage)
-		mem_hold = ((\$(mem_used) > 18000) is True)
+		mem_hold = ((\$(mem_used) > 15000) is True)
 		SYSTEM_PERIODIC_HOLD = (JobStatus == 2 && (\$(mem_hold) || \$(time_hold)))
 		SYSTEM_PERIODIC_HOLD_REASON = strcat(\
 			ifthenelse(\$(time_hold) is True, strcat("t ", interval(\$(job_age))), ""), \
