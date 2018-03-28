@@ -16,3 +16,7 @@
 * if an aprun fails, it should probably restart (-R) (can't use -C then).
 * this may not be the best way to solve this, but saving environment in
     history files makes them huge
+* node running out of memory may turn it into a black hole. This is very
+    strange, but it appears that after running out of memory a couple of
+    workers became black holes with all jobs failing due to a segmentation
+    fault.
