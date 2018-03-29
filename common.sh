@@ -24,12 +24,20 @@ function create_pool_config() {
 		MAX_FILE_DESCRIPTORS = 80000
 		COLLECTOR_MAX_FILE_DESCRIPTORS = 80000
 		SCHEDD_MAX_FILE_DESCRIPTORS = 80000
+		# Since we only run jobs of the same user, avoid idle time on
+		# workers waiting for negotiator.
 		CLAIM_WORKLIFE = -1
+		# Shadow starts noisy in the logs, so make shadows live longer.
 		SHADOW_WORKLIFE = 36000
 		MAX_JOBS_PER_SUBMISSION = 100000
+		# We want frequent updates about jobs memory usage, since nodes
+		# running out of memory may turn them into black holes or kill
+		# the intire aprun group.
 		STARTER_UPDATE_INTERVAL = 120
 		STARTER_UPDATE_INTERVAL_TIMESLICE = 0.5
 		SHADOW_QUEUE_UPDATE_INTERVAL = 120
+		MAX_PERIODIC_EXPR_INTERVAL = 300
+		PERIODIC_EXPR_TIMESLICE = 0.1
 
 		CONDOR_ADMIN =
 		SCHEDD_RESTART_REPORT =
@@ -37,6 +45,8 @@ function create_pool_config() {
 		ALLOW_DAEMON = *
 		HOSTALLOW_ADMINISTRATOR = *
 		
+		# Keep non-essential logs and temporary files on local filesystem
+		# to reduce load on Lustre.
 		RUN = /tmp/$USER
 		LOCK = /tmp/$USER
 		MAX_DEFAULT_LOG = 0
@@ -55,9 +65,13 @@ function create_pool_config() {
 		
 		# Titan nodes have no swap, and if a node runs out of memory, the
 		# entire aprun "application" may be killed (including processes on
-		# other machines), or condor may crash. Because of that, and because
-		# Condor may not catch rapidly increasing memory consumption, set the
-		# limit to be conservative.
+		# other machines), or condor may crash, or a strange condition may
+		# occur when condor keeps running, but all jobs segfault, turning
+		# the node into a black hole. Because of that, and because Condor 
+		# may not catch rapidly increasing memory consumption (in part since
+		# cgroups are not available), set the limit to be conservative.
+		# It would be better to do this on startd, but I couldn't get that
+		# to work.
 		job_age = ifthenelse(JobCurrentStartDate is Undefined, 1, time() - JobCurrentStartDate)
 		time_hold = ((\$(job_age) > 1.5 * \$(hour)) is True)
 		mem_used = ifthenelse(MemoryUsage is Undefined, 0, MemoryUsage)
@@ -73,14 +87,13 @@ function create_pool_config() {
 function monitor_host() {
 	local d=$1
 	local pool=$2
+	# Only write stats every 5 seconds to reduce load on lustre
+	# (only matters for big jobs).
 	dstat -t -cngy -p --proc-count -l --mem --tcp 5 >> $d/dstat &
 	nvidia-smi dmon -o DT -s um -d 5 >> $d/dmon || true &
-#	for ((;;)); do
-#		dmesg | ts > $d/dmesg
-#		sleep 60
-#	done &
 }
 
+# This is messy, and is not currently used
 function monitor_networking() {
 	local d=$1
 	local pool=$2
@@ -106,6 +119,6 @@ function shutdown_on_pool_kill() {
 		sleep 10
 	done
 	condor_off -daemon master
-	pgrep condor && sleep 5
+	pgrep condor && (echo "Some condor daemons still alive"; sleep 5)
 	kill -KILL -1
 }

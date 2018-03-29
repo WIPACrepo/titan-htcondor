@@ -35,6 +35,9 @@ mkdir -p $archive
 cp $pool/* $archive || true
 test -d $pool/nodes && mv $pool/nodes $archive
 
+# It seems that strange errors (e.g. symbol lookup errors) are correlated with
+# many containers starting at once (perhaps lustre can't handle a surge in small
+# io?), so stagger apruns a bit if we are starting a lot.
 if ((PBS_NUM_NODES == 0)); then
 	echo Starting pool in service node mode
 	singularity exec --pid $condor_container \
