@@ -73,7 +73,7 @@ else
 			aprun -n $jobs_per_aprun_quotient -d 16 \
 					singularity exec --pid $condor_container \
 							$libexec/init-worker-node.sh $pool &
-			sleep 5
+			sleep 3
 		done
 		aprun -n $jobs_per_aprun_remainder -d 16 \
 					singularity exec --pid $condor_container \
@@ -96,7 +96,7 @@ done
 
 ssh -p 2222 $(<$pool/cm_addr) $driver_script
 ssh -p 2222 $(<$pool/cm_addr) $libexec/pool-shutdown-agent.sh \
-								$pool $((PBS_WALLTIME - 160)) &
+								$pool $((PBS_WALLTIME - 300)) &
 
 echo Main script finished initialization
 set +o xtrace
