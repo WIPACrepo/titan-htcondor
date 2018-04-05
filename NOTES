@@ -11,12 +11,14 @@
     killing CM's aprun. Likelihood of this happening is very low (never
     happened), but the cost could be very high, especially since currently
     I don't check CM's health in the main script.
-* aprun does not need to transfer executable (-b)
-* aprun should probably "attempt to reconnect around failed nodes" (-C)
-* if an aprun fails, it should probably restart (-R) (can't use -C then).
-* this may not be the best way to solve this, but saving environment in
+* Aprun does not need to transfer executable (-b)
+* Aprun should probably "attempt to reconnect around failed nodes" (-C)
+* If an aprun fails, it should probably restart (-R) (can't use -C then).
+* This may not be the best way to solve this, but saving environment in
     history files makes them huge
-* node running out of memory may turn it into a black hole. This is very
+* Node running out of memory may turn it into a black hole. This is very
     strange, but it appears that after running out of memory a couple of
     workers became black holes with all jobs failing due to a segmentation
     fault.
+* Turns out worker nodes have no local storage, so putting files in /tmp
+    may eat up memory and cause OOM.
